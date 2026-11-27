@@ -114,3 +114,14 @@ chrome.storage.local.get(DEFAULTS, (stored) => {
   state = stored;
   render();
 });
+
+// Outside linear.app the popup only says where the extension works: bridge.js, injected on
+// linear.app only, answers the ping; anywhere else the message fails.
+chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+  const show = (onLinear) => {
+    $('main').hidden = !onLinear;
+    $('off-linear').hidden = onLinear;
+  };
+  if (!tab) return show(false);
+  chrome.tabs.sendMessage(tab.id, { action: 'ping' }, (answer) => show(!chrome.runtime.lastError && Boolean(answer?.ok)));
+});

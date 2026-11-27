@@ -33,21 +33,24 @@ Les palettes évitent volontairement le vert, l'orange, le bleu et le rouge, qui
 
 ## Installation
 
-L'extension n'est pas publiée sur le Chrome Web Store. Pour l'installer :
+L'extension n'est pas sur le Chrome Web Store : elle s'installe en mode développeur, en deux minutes.
 
-1. Cloner le dépôt : `git clone https://github.com/ndy913/show-sub-issues-extended.git`
-2. Ouvrir `chrome://extensions` et activer le **mode développeur**.
-3. Cliquer sur **Charger l'extension non empaquetée** et choisir le dossier cloné.
-4. Recharger l'onglet Linear.
+1. **Télécharger** `show-sub-issues-extended.zip` depuis la [dernière release](https://github.com/ndy913/show-sub-issues-extended/releases/latest), puis le **décompresser**. On obtient un dossier `show-sub-issues-extended`. Le ranger dans un endroit où il restera, par exemple `Documents` : Chrome charge l'extension depuis ce dossier, le supprimer supprime l'extension.
+2. Ouvrir **`chrome://extensions`** (à coller dans la barre d'adresse) et activer **Mode développeur**, en haut à droite.
+3. Cliquer sur **Charger l'extension non empaquetée** et choisir le dossier décompressé.
+4. Recharger l'onglet Linear. Pour l'avoir sous la main, épingler l'extension depuis l'icône puzzle de la barre d'outils.
 
-Pour mettre à jour : `git pull`, puis le bouton ↻ de l'extension dans `chrome://extensions`.
+Chrome 111 ou plus récent est nécessaire. Ça marche aussi dans les navigateurs basés sur Chrome (Brave, Edge, Arc, Vivaldi), avec leur propre page d'extensions.
 
-Chrome 111 ou plus récent est nécessaire.
+**Mettre à jour** : télécharger le zip de la nouvelle release, remplacer le contenu du dossier, puis cliquer sur ↻ sous l'extension dans `chrome://extensions`. Les réglages et les tickets repliés sont conservés.
+
+Avec git, on peut aussi cloner le dépôt (`git clone https://github.com/ndy913/show-sub-issues-extended.git`) et charger ce dossier : une mise à jour devient `git pull` puis ↻.
 
 ## Confidentialité
 
 - L'extension ne s'active que sur `https://linear.app/*` et ne demande que la permission `storage`.
 - Elle n'envoie rien sur le réseau. Les réglages sont dans `chrome.storage.local`, et la liste des tickets repliés dans le `localStorage` de linear.app.
+- Le détail est dans [PRIVACY.md](PRIVACY.md).
 
 ## Comment ça marche, et ses limites
 
@@ -67,3 +70,5 @@ L'activation automatique de « Show sub-issues » repère les libellés anglais 
 | `bridge.js`, `options.js` | Relais entre la popup et la page : réglages et actions. |
 | `popup.html`, `popup.js` | La popup de réglages. |
 | `icons/` | L'icône, et sa source `icon.svg`. |
+| `scripts/build-zip.sh` | Construit le zip joint à chaque release (`dist/show-sub-issues-extended.zip`). |
+| `PRIVACY.md` | Ce que l'extension fait, et ne fait pas, des données. |

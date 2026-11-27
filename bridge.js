@@ -18,6 +18,7 @@ function mirror(options) {
 // Popup actions (Tout replier, Tout déplier, extension turned on): relay to content.js.
 // Answering tells the popup this tab is a Linear page (no answer reads as an error there).
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
+  if (message?.action === 'ping') sendResponse({ ok: true });
   if (['collapse-all', 'expand-all', 'enable-sub-issues'].includes(message?.action)) {
     window.postMessage({ source: 'lsc-bridge', action: message.action }, location.origin);
     sendResponse({ ok: true });

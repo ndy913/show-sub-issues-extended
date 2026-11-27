@@ -153,6 +153,9 @@
   <body>
     <h1>Show sub-issues extended</h1>
 
+    <p id="off-linear" hidden>Actif uniquement sur <strong>linear.app</strong>. Ouvre Linear dans cet onglet pour régler l'extension.</p>
+
+    <div id="main" hidden>
     <label class="switch">
       <input type="checkbox" id="enabled" />
       <span>Extension active<small>Active aussi « Show sub-issues » sur la vue ouverte. Décocher pour revoir Linear tel quel</small></span>
@@ -195,6 +198,7 @@
         <small>Aperçu</small>
         <div class="preview" id="preview"></div>
       </section>
+    </div>
     </div>
 
     <script src="options.js"></script>

@@ -1,33 +1,23 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="128" height="128" viewBox="0 0 128 128">
-  <!-- Indigo tile with a white disc cut by diagonal stripes, and a badge at the bottom right
-       showing a collapsed tree: a chevron and two indented sub-rows. Source of icon-16/32/48/128.png. -->
+  <!-- A small tree on a violet tile: a chevron and a parent row, two indented sub-rows joined by a
+       tree line, and a count pill. Source of icon-16/32/48/128.png. -->
   <defs>
     <linearGradient id="tile" x1="0" y1="0" x2="1" y2="1">
-      <stop offset="0" stop-color="#6e79e0" />
-      <stop offset="1" stop-color="#4b55c4" />
+      <stop offset="0" stop-color="#8b7fd1" />
+      <stop offset="1" stop-color="#5b4fb8" />
     </linearGradient>
-    <clipPath id="disc">
-      <circle cx="58" cy="58" r="36" />
-    </clipPath>
   </defs>
   <rect width="128" height="128" rx="28" fill="url(#tile)" />
-  <g clip-path="url(#disc)" fill="#fff">
-    <!-- The disc as diagonal bands: gaps between them draw the stripes. -->
-    <g transform="rotate(45 58 58)">
-      <rect x="10" y="10" width="96" height="40" />
-      <rect x="10" y="56" width="96" height="9" />
-      <rect x="10" y="71" width="96" height="8" />
-      <rect x="10" y="85" width="96" height="7" />
-    </g>
-  </g>
-  <!-- Badge: collapsed tree -->
-  <circle cx="94" cy="94" r="30" fill="#fff" />
-  <g fill="#4b55c4">
-    <path d="M77 80 L89 87 L77 94 Z" />
-    <rect x="93" y="84" width="20" height="6" rx="3" />
-    <rect x="85" y="99" width="5" height="5" rx="2.5" />
-    <rect x="93" y="99" width="16" height="5" rx="2.5" />
-    <rect x="85" y="108" width="5" height="5" rx="2.5" />
-    <rect x="93" y="108" width="12" height="5" rx="2.5" />
+  <g fill="#fff">
+    <!-- chevron, pointing down (expanded) -->
+    <path d="M22 34 L42 34 L32 46 Z" />
+    <!-- parent row and its count pill -->
+    <rect x="50" y="32" width="38" height="12" rx="6" />
+    <rect x="93" y="31" width="16" height="14" rx="7" fill-opacity="0.55" />
+    <!-- tree line -->
+    <path d="M31 52 V92 H44 M31 72 H44" fill="none" stroke="#fff" stroke-width="5" stroke-linecap="round" stroke-linejoin="round" stroke-opacity="0.75" />
+    <!-- sub-rows -->
+    <rect x="50" y="66" width="48" height="12" rx="6" fill-opacity="0.9" />
+    <rect x="50" y="86" width="38" height="12" rx="6" fill-opacity="0.9" />
   </g>
 </svg>
