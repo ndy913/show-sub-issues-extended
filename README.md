@@ -4,6 +4,8 @@ Extension Chrome pour [Linear](https://linear.app) qui complète l'option **Show
 
 ![Démo de l'extension](docs/demo.gif)
 
+**[⬇ Télécharger l'extension](https://github.com/ndy913/show-sub-issues-extended/releases/latest/download/show-sub-issues-extended.zip)**, puis suivre l'[installation](#installation).
+
 ## Le problème
 
 Avec **Show sub-issues** et **Nested sub-issues** activés, Linear affiche les sous-tickets sous leur parent. Mais un ticket technique appliqué à tous les projets compte vite 20 à 40 sous-tickets, qui noient la liste du cycle. Et en vue liste, Linear ne permet pas de replier les sous-tickets d'un parent.
@@ -35,14 +37,14 @@ Les palettes évitent volontairement le vert, l'orange, le bleu et le rouge, qui
 
 L'extension n'est pas sur le Chrome Web Store : elle s'installe en mode développeur, en deux minutes.
 
-1. **Télécharger** `show-sub-issues-extended.zip` depuis la [dernière release](https://github.com/ndy913/show-sub-issues-extended/releases/latest), puis le **décompresser**. On obtient un dossier `show-sub-issues-extended`. Le ranger dans un endroit où il restera, par exemple `Documents` : Chrome charge l'extension depuis ce dossier, le supprimer supprime l'extension.
+1. **Télécharger le zip** : [show-sub-issues-extended.zip](https://github.com/ndy913/show-sub-issues-extended/releases/latest/download/show-sub-issues-extended.zip) (toujours la dernière version ; les versions précédentes sont dans les [releases](https://github.com/ndy913/show-sub-issues-extended/releases)), puis le **décompresser**. On obtient un dossier `show-sub-issues-extended`. Le ranger dans un endroit où il restera, par exemple `Documents` : Chrome charge l'extension depuis ce dossier, le supprimer supprime l'extension.
 2. Ouvrir **`chrome://extensions`** (à coller dans la barre d'adresse) et activer **Mode développeur**, en haut à droite.
 3. Cliquer sur **Charger l'extension non empaquetée** et choisir le dossier décompressé.
 4. Recharger l'onglet Linear. Pour l'avoir sous la main, épingler l'extension depuis l'icône puzzle de la barre d'outils.
 
 Chrome 111 ou plus récent est nécessaire. Ça marche aussi dans les navigateurs basés sur Chrome (Brave, Edge, Arc, Vivaldi), avec leur propre page d'extensions.
 
-**Mettre à jour** : télécharger le zip de la nouvelle release, remplacer le contenu du dossier, puis cliquer sur ↻ sous l'extension dans `chrome://extensions`. Les réglages et les tickets repliés sont conservés.
+**Mettre à jour** : retélécharger le zip avec le même lien, remplacer le contenu du dossier, puis cliquer sur ↻ sous l'extension dans `chrome://extensions`. Les réglages et les tickets repliés sont conservés.
 
 Avec git, on peut aussi cloner le dépôt (`git clone https://github.com/ndy913/show-sub-issues-extended.git`) et charger ce dossier : une mise à jour devient `git pull` puis ↻.
 
