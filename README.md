@@ -72,3 +72,7 @@ L'activation automatique de « Show sub-issues » repère les libellés anglais 
 | `icons/` | L'icône, et sa source `icon.svg`. |
 | `scripts/build-zip.sh` | Construit le zip joint à chaque release (`dist/show-sub-issues-extended.zip`). |
 | `PRIVACY.md` | Ce que l'extension fait, et ne fait pas, des données. |
+
+## Licence
+
+[MIT](LICENSE) : libre d'utilisation, de copie et de modification, en gardant la mention de copyright.
