@@ -35,18 +35,54 @@ Les palettes évitent volontairement le vert, l'orange, le bleu et le rouge, qui
 
 ## Installation
 
-L'extension n'est pas sur le Chrome Web Store : elle s'installe en mode développeur, en deux minutes.
+L'extension n'est pas sur le Chrome Web Store : elle s'installe en mode développeur, en deux minutes. Deux façons de faire, au choix : avec le **zip** (le plus simple), ou avec **git** (le plus simple à mettre à jour).
 
-1. **Télécharger le zip** : [show-sub-issues-extended.zip](https://github.com/ndy913/show-sub-issues-extended/releases/latest/download/show-sub-issues-extended.zip) (toujours la dernière version ; les versions précédentes sont dans les [releases](https://github.com/ndy913/show-sub-issues-extended/releases)), puis le **décompresser**. On obtient un dossier `show-sub-issues-extended`. Le ranger dans un endroit où il restera, par exemple `Documents` : Chrome charge l'extension depuis ce dossier, le supprimer supprime l'extension.
-2. Ouvrir **`chrome://extensions`** (à coller dans la barre d'adresse) et activer **Mode développeur**, en haut à droite.
-3. Cliquer sur **Charger l'extension non empaquetée** et choisir le dossier décompressé.
-4. Recharger l'onglet Linear. Pour l'avoir sous la main, épingler l'extension depuis l'icône puzzle de la barre d'outils.
+Dans les deux cas, Chrome 111 ou plus récent est nécessaire. Ça marche aussi dans les navigateurs basés sur Chrome (Brave, Edge, Arc, Vivaldi), avec leur propre page d'extensions.
 
-Chrome 111 ou plus récent est nécessaire. Ça marche aussi dans les navigateurs basés sur Chrome (Brave, Edge, Arc, Vivaldi), avec leur propre page d'extensions.
+### Avec le zip
 
-**Mettre à jour** : retélécharger le zip avec le même lien, remplacer le contenu du dossier, puis cliquer sur ↻ sous l'extension dans `chrome://extensions`. Les réglages et les tickets repliés sont conservés.
+**Installer**
 
-Avec git, on peut aussi cloner le dépôt (`git clone https://github.com/ndy913/show-sub-issues-extended.git`) et charger ce dossier : une mise à jour devient `git pull` puis ↻.
+1. **Télécharger le zip** : [show-sub-issues-extended.zip](https://github.com/ndy913/show-sub-issues-extended/releases/latest/download/show-sub-issues-extended.zip). Ce lien donne toujours la dernière version ; les précédentes sont dans les [releases](https://github.com/ndy913/show-sub-issues-extended/releases).
+2. Le **décompresser**. On obtient un dossier `show-sub-issues-extended`. Le ranger dans un endroit où il restera, par exemple `Documents` : Chrome charge l'extension depuis ce dossier, le supprimer supprime l'extension.
+3. Ouvrir **`chrome://extensions`** (à coller dans la barre d'adresse) et activer **Mode développeur**, en haut à droite.
+4. Cliquer sur **Charger l'extension non empaquetée** et choisir le dossier décompressé.
+5. Recharger l'onglet Linear. Pour l'avoir sous la main, épingler l'extension depuis l'icône puzzle de la barre d'outils.
+
+**Mettre à jour**
+
+1. Retélécharger le zip avec [le même lien](https://github.com/ndy913/show-sub-issues-extended/releases/latest/download/show-sub-issues-extended.zip) et le décompresser.
+2. Remplacer le contenu du dossier installé par celui du nouveau dossier. Le dossier doit garder le même emplacement : c'est celui que Chrome connaît.
+3. Dans `chrome://extensions`, cliquer sur **↻** sur la carte de l'extension.
+4. Recharger l'onglet Linear.
+
+### Avec git
+
+**Installer**
+
+1. Cloner le dépôt là où il restera, par exemple dans `Documents` :
+   ```bash
+   git clone https://github.com/ndy913/show-sub-issues-extended.git
+   ```
+2. Ouvrir **`chrome://extensions`** et activer **Mode développeur**, en haut à droite.
+3. Cliquer sur **Charger l'extension non empaquetée** et choisir le dossier `show-sub-issues-extended` cloné.
+4. Recharger l'onglet Linear.
+
+**Mettre à jour**
+
+1. Récupérer la dernière version (la branche `main` contient toujours la dernière version publiée) :
+   ```bash
+   cd show-sub-issues-extended
+   git pull
+   ```
+2. Dans `chrome://extensions`, cliquer sur **↻** sur la carte de l'extension.
+3. Recharger l'onglet Linear.
+
+### Bon à savoir
+
+- **Quelle version est installée** : elle est affichée sur la carte de l'extension, dans `chrome://extensions`. La dernière publiée est en haut de la page des [releases](https://github.com/ndy913/show-sub-issues-extended/releases).
+- **Les réglages et les tickets repliés sont conservés** lors d'une mise à jour.
+- **Après une mise à jour, recharger les onglets Linear déjà ouverts** : tant qu'ils ne sont pas rechargés, l'extension n'y agit plus, et sa popup propose un bouton pour le faire.
 
 ## Confidentialité
 
