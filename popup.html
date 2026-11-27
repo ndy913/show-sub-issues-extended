@@ -4,6 +4,7 @@
     <meta charset="utf-8" />
     <style>
       :root {
+        color-scheme: light dark;
         --text: #1f2023;
         --muted: #6b6f76;
         --line: #e6e6e8;
@@ -142,6 +143,9 @@
       [hidden] {
         display: none !important;
       }
+      #enable-failed {
+        margin-top: 6px;
+      }
       .buttons {
         display: flex;
         gap: 6px;
@@ -178,6 +182,8 @@
       (bouton <strong>Display options</strong> en haut à droite, ou Shift+V), avec
       <strong>«&nbsp;Nested sub-issues&nbsp;»</strong> sur autre chose que Hide. Le bouton ci-dessous le fait pour toi.
       <button type="button" id="enable-option">Afficher les sous-tickets en arbre</button>
+      <small id="enable-failed" hidden>Linear n'a pas affiché l'arbre. Une vue en board n'en a pas : passe-la en liste
+        dans Display options. L'extension ne trouve aussi ces réglages que si Linear est en anglais.</small>
     </div>
 
     <p id="no-list" class="notice" hidden>Pas de liste de tickets sur cette page. Ouvre une vue en liste de tickets

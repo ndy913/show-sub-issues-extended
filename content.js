@@ -1,5 +1,5 @@
 // Collapses sub-issues under their parent in Linear list views ("Nested sub-issues" display option),
-// and tints sub-issue rows by depth. Linear has neither natively.
+// and tints issue rows by depth. Linear has neither natively.
 //
 // Hiding the rows in the DOM is not enough: the list is virtualized and keeps rendering from its
 // own idea of each row's position, which leaves a blank area under a collapsed parent. So we act
@@ -20,6 +20,7 @@
   const STORAGE_KEY = 'lsc:collapsed';
   const ROW_SELECTOR = 'a[data-list-row]';
   const ROOT = document.documentElement;
+  const LEVELS = 5; // palette levels, as in options.js (not loaded in this world)
   // Same triangle as Linear's group headers, pointing right; rotated down when expanded.
   const CHEVRON_PATH =
     'M6.75194 10.6239C6.41861 10.8183 6 10.5779 6 10.192V5.80802C6 5.42212 6.41861 5.18169 6.75194 5.37613L10.5096 7.56811C10.8404 7.76105 10.8404 8.23895 10.5096 8.43189L6.75194 10.6239Z';
@@ -101,7 +102,7 @@
     return seenA > seenB ? a : b;
   }
 
-  // An issue's identifier, like "EXTERN-997". Other lists use the same item shape with other
+  // An issue's identifier, like "ENG-123". Other lists use the same item shape with other
   // identifiers (cycles are numbered: 35, 34...), which must not pass for issues.
   const ISSUE_ID = /^[A-Z][A-Z0-9]*-\d+$/;
   function identifierOf(item) {
@@ -391,9 +392,10 @@
       }
     }
 
-    // The tree line does not move for a given row element and depth: measured once.
-    if (info?.depth > 0 && row.dataset.lscStartDepth !== String(info.depth)) {
-      plan.start = `${treeLineOffset(row, info.depth)}px`;
+    // The tree line does not move for a given row element and depth: measured once. Top-level
+    // issues have no tree line, their tint covers the whole row.
+    if (info && row.dataset.lscStartDepth !== String(info.depth)) {
+      plan.start = info.depth > 0 ? `${treeLineOffset(row, info.depth)}px` : '0px';
     }
     return plan;
   }
@@ -424,15 +426,18 @@
     }
     writeCount(row, info, toggleLeft ? titleText : null);
 
-    setData(row, 'lscDepth', info ? String(Math.min(info.depth, 5)) : '0');
+    // Depth 0 to 4 take palette levels 1 to 5 (content.css), deeper rows keep level 5. Rows without
+    // tree info (a list that does not draw the sub-issue tree) stay plain.
+    setData(row, 'lscDepth', info ? String(Math.min(info.depth, LEVELS - 1)) : null);
     if (start) {
       row.style.setProperty('--lsc-start', start);
       setData(row, 'lscStartDepth', String(info.depth));
     }
   }
 
-  // Pill after the title with the number of direct sub-issues, in the color of the level they sit
-  // at. Discreet while they are shown, plain "N masqués" once the parent is collapsed.
+  // Pill after the title with the number of direct sub-issues: text in the title color, background
+  // in the color of the level they sit at, stronger and bold once the parent is collapsed
+  // ("N masqués").
   function writeCount(row, info, titleText) {
     let pill = row.querySelector('.lsc-count');
     if (!titleText) {
@@ -449,7 +454,8 @@
     const text = info.isCollapsed ? `${info.childCount} ${hidden}` : String(info.childCount);
     if (pill.textContent !== text) pill.textContent = text;
     setData(pill, 'collapsed', String(info.isCollapsed));
-    setData(pill, 'level', String(Math.min(info.depth + 1, 5)));
+    // The sub-issues sit at depth + 1, which is palette level depth + 2.
+    setData(pill, 'level', String(Math.min(info.depth + 2, LEVELS)));
     const title = `${info.childCount} sous-tickets dans cette vue`;
     if (pill.title !== title) pill.title = title;
   }
@@ -546,8 +552,11 @@
   // the popup through bridge.js.
   window.addEventListener('message', (event) => {
     if (event.source !== window || event.data?.source !== 'lsc-bridge') return;
-    if (event.data.action === 'collapse-all') setCollapsed(allParentRows(), true);
-    if (event.data.action === 'expand-all') setCollapsed(allParentRows(), false);
+    // Ignored while the collapse option is off (also off with the main switch): the popup buttons
+    // are greyed out, but a keyboard can still reach them.
+    const collapseOn = isEnabled('lscCollapse');
+    if (event.data.action === 'collapse-all' && collapseOn) setCollapsed(allParentRows(), true);
+    if (event.data.action === 'expand-all' && collapseOn) setCollapsed(allParentRows(), false);
     if (event.data.action === 'enable-sub-issues') enableSubIssues().catch((error) => console.warn('[linear-subissue-collapse]', error));
   });
 
@@ -601,13 +610,20 @@
     }
 
     const toggle = controlNear(showLabel, 'input[type="checkbox"]');
-    if (toggle && !toggle.checked) {
+    const turnedOn = Boolean(toggle && !toggle.checked);
+    if (turnedOn) {
       toggle.click();
       await sleep(150);
     }
 
-    const nestedLabel = await waitFor(() => labelElement('Nested sub-issues'), 800);
+    const nestedLabel = await waitFor(() => labelElement('Nested sub-issues'));
     const nested = nestedLabel && controlNear(nestedLabel, '[role="combobox"], button');
+    if (!nestedLabel && turnedOn) {
+      // No "Nested sub-issues" line (a board): the tree cannot show here, so put the view back as
+      // it was. A line whose control is not found is still a list view: leave the option on.
+      toggle.click();
+      await sleep(150);
+    }
     if (nested?.textContent.trim() === 'Hide') {
       nested.click();
       const option = await waitFor(() =>
@@ -770,7 +786,10 @@
     const values = [...states.values()];
     if (values.includes('on')) return setData(ROOT, 'lscNested', 'on');
     if (values.includes(null)) return;
-    const listView = Boolean(document.querySelector('button[aria-label="Display options"]'));
+    // Only when no list was found: a list of projects or cycles also has that button, and must
+    // read as "no issue list". An empty one (all rows filtered out) still reads as "off", since
+    // nothing tells it apart from an issue view emptied by the option.
+    const listView = states.size === 0 && Boolean(document.querySelector('button[aria-label="Display options"]'));
     setData(ROOT, 'lscNested', values.includes('off') || listView ? 'off' : 'none');
   }
 

@@ -41,17 +41,26 @@ html[data-lsc-collapse='on'] [data-lsc-cell='title'] {
   transform: rotate(0deg);
 }
 
+/* In the list, the chevron takes the row's text color, faded: grey on both Linear themes, and
+   clearer on hover. */
+.lsc-toggle svg {
+  fill: currentColor;
+  opacity: 0.45;
+}
+
 .lsc-toggle:hover {
   background: rgba(127, 127, 127, 0.18);
 }
 
 .lsc-toggle:hover svg {
-  fill: lch(40% 0 282);
+  opacity: 0.75;
 }
 
 /* --- Number of sub-issues, after the title -------------------------------------------------- */
-/* Colored like the level the sub-issues sit at (--lsc-color-n, from the palette), discreet while
-   they are shown and fully visible once the parent is collapsed. */
+/* The number is written in the title's color (near black on Linear's light theme, near white on
+   the dark one) so it stays readable on every tint. The pill background takes the color of the
+   level the sub-issues sit at (--lsc-color-n, from the palette), stronger once the parent is
+   collapsed. */
 
 .lsc-count {
   flex: none;
@@ -63,12 +72,12 @@ html[data-lsc-collapse='on'] [data-lsc-cell='title'] {
   font-weight: 500;
   white-space: nowrap;
   --lsc-count-color: var(--lsc-color-1, #8a8f98);
-  color: color-mix(in srgb, var(--lsc-count-color) 75%, currentColor);
-  background: color-mix(in srgb, var(--lsc-count-color) 22%, transparent);
-  opacity: 0.55;
+  color: inherit;
+  background: color-mix(in srgb, var(--lsc-count-color) 25%, transparent);
 }
 .lsc-count[data-collapsed='true'] {
-  opacity: 1;
+  font-weight: 600;
+  background: color-mix(in srgb, var(--lsc-count-color) 45%, transparent);
 }
 .lsc-count[data-level='2'] { --lsc-count-color: var(--lsc-color-2, #8a8f98); }
 .lsc-count[data-level='3'] { --lsc-count-color: var(--lsc-color-3, #8a8f98); }
@@ -104,19 +113,21 @@ html[data-lsc-collapse='on'] [data-lsc-cell='title'] {
 }
 
 /* --- Background by depth ------------------------------------------------------------------ */
-/* Issues directly under a group stay plain. The tint starts at the row's tree line
-   (--lsc-start, set by content.js) and runs to the right edge. */
+/* Every issue of the tree is tinted, top-level ones included, so each level reads at a glance.
+   Depth 0 (issues directly under a group) takes level 1 of the palette, depth 4 and deeper take
+   level 5. The tint starts at the row's tree line (--lsc-start, set by content.js; 0 for the top
+   level) and runs to the right edge. */
 
-html[data-lsc-colors='on'] a[data-list-row][data-lsc-depth]:not([data-lsc-depth='0']) {
+html[data-lsc-colors='on'] a[data-list-row][data-lsc-depth] {
   background-image: linear-gradient(
     to right,
     transparent var(--lsc-start, 0px),
     var(--lsc-tint) var(--lsc-start, 0px)
   );
 }
-a[data-list-row][data-lsc-depth='1'] { --lsc-tint: var(--lsc-tint-1); }
-a[data-list-row][data-lsc-depth='2'] { --lsc-tint: var(--lsc-tint-2); }
-a[data-list-row][data-lsc-depth='3'] { --lsc-tint: var(--lsc-tint-3); }
-a[data-list-row][data-lsc-depth='4'] { --lsc-tint: var(--lsc-tint-4); }
-a[data-list-row][data-lsc-depth='5'] { --lsc-tint: var(--lsc-tint-5); }
+a[data-list-row][data-lsc-depth='0'] { --lsc-tint: var(--lsc-tint-1); }
+a[data-list-row][data-lsc-depth='1'] { --lsc-tint: var(--lsc-tint-2); }
+a[data-list-row][data-lsc-depth='2'] { --lsc-tint: var(--lsc-tint-3); }
+a[data-list-row][data-lsc-depth='3'] { --lsc-tint: var(--lsc-tint-4); }
+a[data-list-row][data-lsc-depth='4'] { --lsc-tint: var(--lsc-tint-5); }
 

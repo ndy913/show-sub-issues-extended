@@ -27,7 +27,8 @@ function buildPalettes() {
         picker.title = `Niveau ${level + 1}`;
         picker.dataset.level = String(level);
         picker.addEventListener('input', () => {
-          const customColors = [...state.customColors];
+          // Starts from the palette on screen: touching a color of a preset makes it a custom one.
+          const customColors = [...levelColors(state)];
           customColors[level] = picker.value;
           save({ customColors, palette: 'custom' });
         });
@@ -39,25 +40,26 @@ function buildPalettes() {
       }
     }
     row.append(swatches);
-    row.querySelector('input').addEventListener('change', () => {
-      // Picking a preset also loads it into the custom pickers, as a starting point.
-      save(key === 'custom' ? { palette: key } : { palette: key, customColors: [...PALETTES[key].colors] });
-    });
+    // Picking a preset keeps the custom colors aside: coming back to « Personnalisée » finds them.
+    row.querySelector('input').addEventListener('change', () => save({ palette: key }));
     container.append(row);
   }
 }
 
 function render() {
   for (const name of ['enabled', 'collapse', 'colors']) $(name).checked = state[name];
-  $('options').classList.toggle('disabled', !state.enabled);
-  $('colors-options').classList.toggle('disabled', !state.colors);
-  $('collapse-options').classList.toggle('disabled', !state.collapse);
+  // Greyed-out blocks are also inert, so the keyboard cannot reach them either.
+  for (const [id, on] of [['options', state.enabled], ['colors-options', state.colors], ['collapse-options', state.collapse]]) {
+    $(id).classList.toggle('disabled', !on);
+    $(id).inert = !on;
+  }
   $('levelStep').value = state.levelStep;
   $('levelStep-value').textContent = `+${state.levelStep} %`;
 
   for (const radio of document.querySelectorAll('input[name="palette"]')) radio.checked = radio.value === state.palette;
+  // The pickers show the palette in use, preset or custom.
   for (const picker of document.querySelectorAll('.custom-colors input')) {
-    picker.value = state.customColors[Number(picker.dataset.level)];
+    picker.value = levelColors(state)[Number(picker.dataset.level)];
   }
 
   $('tintStrength').value = state.tintStrength;
@@ -69,13 +71,16 @@ function render() {
 function renderPreview() {
   const preview = $('preview');
   preview.replaceChildren();
-  const labels = ['Ticket parent', 'Sous-ticket', 'Niveau 2', 'Niveau 3', 'Niveau 4', 'Niveau 5'];
-  labels.forEach((text, level) => {
+  // Same as in Linear: every level is tinted, the top one across the whole row, the others from
+  // their tree line.
+  const labels = ['Niveau 1 : ticket', 'Niveau 2 : sous-ticket', 'Niveau 3', 'Niveau 4', 'Niveau 5'];
+  labels.forEach((text, depth) => {
     const line = document.createElement('div');
-    const indent = 8 + 14 * level;
+    const indent = 8 + 14 * depth;
     line.style.paddingLeft = `${indent + 6}px`;
-    if (level > 0 && state.colors) {
-      line.style.background = `linear-gradient(to right, transparent ${indent}px, ${tintOf(state, level)} ${indent}px)`;
+    if (state.colors) {
+      const start = depth === 0 ? 0 : indent;
+      line.style.background = `linear-gradient(to right, transparent ${start}px, ${tintOf(state, depth + 1)} ${start}px)`;
     }
     const span = document.createElement('span');
     span.textContent = text;
@@ -139,13 +144,19 @@ function checkTab() {
 }
 checkTab();
 
-// Turns the option on in the open view, then waits for the list to show the tree.
+// Turns the option on in the open view, then waits for the list to show the tree. Still no tree
+// after 4 s: say so (a board has no tree, and the extension only finds Linear's English labels).
 $('enable-option').addEventListener('click', () => {
+  $('enable-failed').hidden = true;
   sendToActiveTab('enable-sub-issues');
   let tries = 0;
   const timer = setInterval(() => {
     checkTab();
-    if (++tries >= 8 || !$('main').hidden) clearInterval(timer);
+    if (!$('main').hidden) return clearInterval(timer);
+    if (++tries >= 8) {
+      clearInterval(timer);
+      $('enable-failed').hidden = false;
+    }
   }, 500);
 });
 $('reload-tab-button').addEventListener('click', () => {

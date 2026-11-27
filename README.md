@@ -16,7 +16,7 @@ Avec **Show sub-issues** et **Nested sub-issues** activés, Linear affiche les s
 - **Le clic droit sur un ticket parent** propose aussi « Replier les sous-tickets » ou « Déplier les sous-tickets ».
 - **Alt + clic sur un chevron** replie ou déplie tous les parents de la liste, y compris ceux qui ne sont pas à l'écran.
 - **Une pastille après le titre** donne le nombre de sous-tickets du parent dans la vue (« 20 », ou « 20 masqués » une fois replié).
-- **Un fond pastel par niveau** de l'arbre, qui part du trait de l'arbre et change de teinte à chaque niveau.
+- **Un fond pastel par niveau** de l'arbre, tickets de premier niveau compris, qu'ils aient des sous-tickets ou non : il couvre toute la ligne au premier niveau, part du trait de l'arbre aux niveaux suivants, et change de teinte à chaque niveau.
 - Les tickets repliés le restent après un rechargement, et d'un onglet à l'autre.
 
 ## Réglages
@@ -108,7 +108,7 @@ Le bouton **Afficher les sous-tickets en arbre** repère les libellés anglais d
 | `bridge.js`, `options.js` | Relais entre la popup et la page : réglages et actions. |
 | `popup.html`, `popup.js` | La popup de réglages. |
 | `icons/` | L'icône, et sa source `icon.svg`. |
-| `scripts/build-zip.sh` | Construit le zip joint à chaque release (`dist/show-sub-issues-extended.zip`). |
+| `scripts/build-zip.sh` | Construit le zip joint à chaque release (`dist/show-sub-issues-extended.zip`). Refuse de le construire s'il reste des modifications non commitées dans les fichiers du zip. |
 | `PRIVACY.md` | Ce que l'extension fait, et ne fait pas, des données. |
 
 ## Licence

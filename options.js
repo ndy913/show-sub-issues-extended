@@ -24,8 +24,9 @@ function levelColors(options) {
   return options.palette === 'custom' ? options.customColors : PALETTES[options.palette]?.colors || PALETTES.lavande.colors;
 }
 
-// Background of level n (1-based): the level color at tintStrength %, plus levelStep % of that
-// per level below. With the defaults: 10 %, 15 %, 20 %, 25 %, 30 %.
+// Background of level n (1-based, level 1 being the top-level issues): the level color at
+// tintStrength %, plus levelStep % of that per level below. With the defaults: 10 %, 15 %, 20 %,
+// 25 %, 30 %.
 function tintOf(options, level) {
   const hex = levelColors(options)[level - 1];
   const alpha = Math.min(0.6, (options.tintStrength / 100) * (1 + (options.levelStep / 100) * (level - 1)));
