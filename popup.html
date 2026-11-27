@@ -1,0 +1,203 @@
+<!doctype html>
+<html lang="fr">
+  <head>
+    <meta charset="utf-8" />
+    <style>
+      :root {
+        --text: #1f2023;
+        --muted: #6b6f76;
+        --line: #e6e6e8;
+        --bg: #fff;
+        --field: #f4f4f6;
+        --accent: #5e6ad2;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --text: #e6e6e8;
+          --muted: #8a8f98;
+          --line: #2e3035;
+          --bg: #1c1d21;
+          --field: #26272c;
+        }
+      }
+      body {
+        margin: 0;
+        padding: 12px 14px 14px;
+        width: 300px;
+        font: 13px/1.4 -apple-system, BlinkMacSystemFont, 'Inter', sans-serif;
+        color: var(--text);
+        background: var(--bg);
+        accent-color: var(--accent);
+      }
+      h1 {
+        margin: 0 0 10px;
+        font-size: 13px;
+        font-weight: 600;
+      }
+      section {
+        padding: 10px 0;
+        border-top: 1px solid var(--line);
+      }
+      label.switch {
+        display: flex;
+        gap: 8px;
+        align-items: flex-start;
+        cursor: pointer;
+        font-weight: 500;
+      }
+      label.switch input {
+        margin: 2px 0 0;
+      }
+      small {
+        display: block;
+        font-weight: 400;
+        color: var(--muted);
+      }
+      .sub {
+        margin: 8px 0 0 21px;
+      }
+      .disabled {
+        opacity: 0.45;
+        pointer-events: none;
+      }
+      .palettes {
+        display: grid;
+        gap: 4px;
+      }
+      .palette {
+        display: flex;
+        gap: 8px;
+        align-items: center;
+        padding: 4px 6px;
+        border-radius: 6px;
+        cursor: pointer;
+      }
+      .palette:hover {
+        background: var(--field);
+      }
+      .palette span.name {
+        flex: 1;
+      }
+      .swatches {
+        display: flex;
+        gap: 3px;
+      }
+      .swatches i {
+        width: 14px;
+        height: 14px;
+        border-radius: 4px;
+      }
+      .custom-colors {
+        display: flex;
+        gap: 4px;
+      }
+      .custom-colors input {
+        width: 22px;
+        height: 18px;
+        padding: 0;
+        border: 0;
+        border-radius: 4px;
+        background: none;
+        cursor: pointer;
+      }
+      .slider {
+        display: grid;
+        grid-template-columns: 1fr auto;
+        gap: 2px 8px;
+        align-items: center;
+        margin-top: 8px;
+      }
+      .slider input {
+        grid-column: 1 / -1;
+        width: 100%;
+        margin: 0;
+      }
+      .slider output {
+        color: var(--muted);
+        font-variant-numeric: tabular-nums;
+      }
+      .preview {
+        margin-top: 10px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        overflow: hidden;
+      }
+      [hidden] {
+        display: none !important;
+      }
+      .buttons {
+        display: flex;
+        gap: 6px;
+      }
+      .buttons button {
+        flex: 1;
+        padding: 5px 8px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        font: inherit;
+        color: var(--text);
+        background: var(--field);
+        cursor: pointer;
+      }
+      .buttons button:hover {
+        border-color: var(--accent);
+      }
+      .preview div {
+        height: 22px;
+        line-height: 22px;
+        font-size: 12px;
+        white-space: nowrap;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>Show sub-issues extended</h1>
+
+    <label class="switch">
+      <input type="checkbox" id="enabled" />
+      <span>Extension active<small>Active aussi « Show sub-issues » sur la vue ouverte. Décocher pour revoir Linear tel quel</small></span>
+    </label>
+
+    <div id="options">
+      <section>
+        <label class="switch">
+          <input type="checkbox" id="collapse" />
+          <span>Repli des sous-tickets<small>Chevron avant le statut et entrée dans le clic droit</small></span>
+        </label>
+        <div class="sub buttons" id="collapse-options">
+          <button type="button" id="collapse-all">Tout replier</button>
+          <button type="button" id="expand-all">Tout déplier</button>
+        </div>
+        <small class="sub" id="collapse-message" hidden>Ouvre une liste Linear dans cet onglet.</small>
+      </section>
+
+      <section>
+        <label class="switch">
+          <input type="checkbox" id="colors" />
+          <span>Couleur par niveau<small>Fond qui change à chaque niveau de l'arbre</small></span>
+        </label>
+        <div class="sub" id="colors-options">
+          <div class="palettes" id="palettes"></div>
+          <div class="slider">
+            <span>Intensité du fond</span>
+            <output id="tintStrength-value"></output>
+            <input type="range" id="tintStrength" min="3" max="25" step="1" />
+          </div>
+          <div class="slider">
+            <span>Écart entre niveaux</span>
+            <output id="levelStep-value"></output>
+            <input type="range" id="levelStep" min="0" max="120" step="5" />
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <small>Aperçu</small>
+        <div class="preview" id="preview"></div>
+      </section>
+    </div>
+
+    <script src="options.js"></script>
+    <script src="popup.js"></script>
+  </body>
+</html>

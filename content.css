@@ -1,0 +1,122 @@
+/* All the looks are driven by attributes and variables that bridge.js puts on <html>, from the
+   popup options: data-lsc-collapse and data-lsc-colors ("on" / "off"), and
+   --lsc-tint-1..5 (background of each level). */
+
+/* --- Chevron, just before the status icon ------------------------------------------------- */
+
+/* Every row makes room for the chevron, so titles stay aligned whether a row is a parent or not. */
+html[data-lsc-collapse='on'] [data-lsc-cell='status'] {
+  transform: translateX(16px);
+}
+html[data-lsc-collapse='on'] [data-lsc-cell='title'] {
+  padding-left: 16px;
+}
+
+/* Linear's group-header triangle, a bit smaller. content.js sets `left` from the status icon. */
+.lsc-toggle {
+  position: absolute;
+  top: 50%;
+  z-index: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 16px;
+  height: 16px;
+  margin-top: -8px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.lsc-toggle svg,
+.lsc-menu-icon {
+  width: 13px;
+  height: 13px;
+  fill: lch(62% 0 282);
+  transform: rotate(90deg);
+  transition: transform 120ms ease;
+}
+
+.lsc-toggle[data-collapsed='true'] svg,
+.lsc-menu-icon[data-collapsed='true'] {
+  transform: rotate(0deg);
+}
+
+.lsc-toggle:hover {
+  background: rgba(127, 127, 127, 0.18);
+}
+
+.lsc-toggle:hover svg {
+  fill: lch(40% 0 282);
+}
+
+/* --- Number of sub-issues, after the title -------------------------------------------------- */
+/* Colored like the level the sub-issues sit at (--lsc-color-n, from the palette), discreet while
+   they are shown and fully visible once the parent is collapsed. */
+
+.lsc-count {
+  flex: none;
+  margin-left: 8px;
+  padding: 0 6px;
+  border-radius: 9px;
+  font-size: 11px;
+  line-height: 16px;
+  font-weight: 500;
+  white-space: nowrap;
+  --lsc-count-color: var(--lsc-color-1, #8a8f98);
+  color: color-mix(in srgb, var(--lsc-count-color) 75%, currentColor);
+  background: color-mix(in srgb, var(--lsc-count-color) 22%, transparent);
+  opacity: 0.55;
+}
+.lsc-count[data-collapsed='true'] {
+  opacity: 1;
+}
+.lsc-count[data-level='2'] { --lsc-count-color: var(--lsc-color-2, #8a8f98); }
+.lsc-count[data-level='3'] { --lsc-count-color: var(--lsc-color-3, #8a8f98); }
+.lsc-count[data-level='4'] { --lsc-count-color: var(--lsc-color-4, #8a8f98); }
+.lsc-count[data-level='5'] { --lsc-count-color: var(--lsc-color-5, #8a8f98); }
+
+/* --- Item added to Linear's right-click menu ---------------------------------------------- */
+
+[role='dialog']:has(> .lsc-menu) {
+  height: auto !important;
+}
+
+.lsc-menu {
+  padding-top: 6px;
+}
+
+.lsc-menu .lsc-menu-item {
+  position: relative !important;
+  top: auto !important;
+  left: auto !important;
+  width: auto !important;
+  height: 32px;
+  cursor: pointer;
+}
+
+.lsc-menu .lsc-menu-item[data-focused='true'] {
+  background: rgba(127, 127, 127, 0.14);
+}
+
+.lsc-menu-separator {
+  position: relative !important;
+  height: 12px;
+}
+
+/* --- Background by depth ------------------------------------------------------------------ */
+/* Issues directly under a group stay plain. The tint starts at the row's tree line
+   (--lsc-start, set by content.js) and runs to the right edge. */
+
+html[data-lsc-colors='on'] a[data-list-row][data-lsc-depth]:not([data-lsc-depth='0']) {
+  background-image: linear-gradient(
+    to right,
+    transparent var(--lsc-start, 0px),
+    var(--lsc-tint) var(--lsc-start, 0px)
+  );
+}
+a[data-list-row][data-lsc-depth='1'] { --lsc-tint: var(--lsc-tint-1); }
+a[data-list-row][data-lsc-depth='2'] { --lsc-tint: var(--lsc-tint-2); }
+a[data-list-row][data-lsc-depth='3'] { --lsc-tint: var(--lsc-tint-3); }
+a[data-list-row][data-lsc-depth='4'] { --lsc-tint: var(--lsc-tint-4); }
+a[data-list-row][data-lsc-depth='5'] { --lsc-tint: var(--lsc-tint-5); }
+
