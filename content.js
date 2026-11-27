@@ -591,7 +591,14 @@
       button.click();
     }
     const showLabel = await waitFor(() => labelElement('Show sub-issues'));
-    if (!showLabel) return;
+    if (!showLabel) {
+      // Not a panel with this option (a board, another language): close it as it was.
+      if (!wasOpen) {
+        button.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+        button.click();
+      }
+      return;
+    }
 
     const toggle = controlNear(showLabel, 'input[type="checkbox"]');
     if (toggle && !toggle.checked) {
@@ -756,11 +763,15 @@
     return hasNestedSubIssues([current]) ? 'on' : 'off';
   }
 
+  // A list view whose issues are all sub-issues shows no row at all once "Show sub-issues" is off:
+  // no issue list is found, but the page still has Linear's Display options button, so it is a
+  // list view with the option off rather than a page without list.
   function writeNestedState(states) {
     const values = [...states.values()];
     if (values.includes('on')) return setData(ROOT, 'lscNested', 'on');
     if (values.includes(null)) return;
-    setData(ROOT, 'lscNested', values.includes('off') ? 'off' : 'none');
+    const listView = Boolean(document.querySelector('button[aria-label="Display options"]'));
+    setData(ROOT, 'lscNested', values.includes('off') || listView ? 'off' : 'none');
   }
 
   // bridge.js fires this right before answering the popup: the page may have changed without any
