@@ -48,7 +48,7 @@ Avec git, on peut aussi cloner le dépôt (`git clone https://github.com/ndy913/
 
 ## Confidentialité
 
-- L'extension ne s'active que sur `https://linear.app/*` et ne demande que la permission `storage`.
+- L'extension ne s'active que sur `https://linear.app/*`. Elle ne demande que l'accès à ce site et la permission `storage`.
 - Elle n'envoie rien sur le réseau. Les réglages sont dans `chrome.storage.local`, et la liste des tickets repliés dans le `localStorage` de linear.app.
 - Le détail est dans [PRIVACY.md](PRIVACY.md).
 

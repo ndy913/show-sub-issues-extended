@@ -122,6 +122,23 @@
         border-radius: 6px;
         overflow: hidden;
       }
+      .notice {
+        margin: 0 0 10px;
+        padding: 8px 10px;
+        border-radius: 6px;
+        background: var(--field);
+      }
+      .notice button {
+        display: block;
+        margin-top: 6px;
+        padding: 4px 8px;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        font: inherit;
+        color: var(--text);
+        background: var(--bg);
+        cursor: pointer;
+      }
       [hidden] {
         display: none !important;
       }
@@ -156,6 +173,10 @@
     <p id="off-linear" hidden>Actif uniquement sur <strong>linear.app</strong>. Ouvre Linear dans cet onglet pour régler l'extension.</p>
 
     <div id="main" hidden>
+    <p id="reload-tab" class="notice" hidden>
+      L'extension vient d'être installée ou rechargée : recharge cet onglet pour l'appliquer.
+      <button type="button" id="reload-tab-button">Recharger l'onglet</button>
+    </p>
     <label class="switch">
       <input type="checkbox" id="enabled" />
       <span>Extension active<small>Active aussi « Show sub-issues » sur la vue ouverte. Décocher pour revoir Linear tel quel</small></span>

@@ -115,13 +115,22 @@ chrome.storage.local.get(DEFAULTS, (stored) => {
   render();
 });
 
-// Outside linear.app the popup only says where the extension works: bridge.js, injected on
-// linear.app only, answers the ping; anywhere else the message fails.
+// Outside linear.app the popup only says where the extension works. The tab's address decides
+// (Chrome shows it to the extension on linear.app, where its content scripts run). On a Linear tab
+// opened before the extension was installed or reloaded, the page still runs without our scripts:
+// they do not answer the ping, and the popup asks for a reload of the tab.
 chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
-  const show = (onLinear) => {
-    $('main').hidden = !onLinear;
-    $('off-linear').hidden = onLinear;
-  };
-  if (!tab) return show(false);
-  chrome.tabs.sendMessage(tab.id, { action: 'ping' }, (answer) => show(!chrome.runtime.lastError && Boolean(answer?.ok)));
+  const onLinear = /^https:\/\/linear\.app\//.test(tab?.url || '');
+  $('main').hidden = !onLinear;
+  $('off-linear').hidden = onLinear;
+  if (!onLinear) return;
+  chrome.tabs.sendMessage(tab.id, { action: 'ping' }, (answer) => {
+    $('reload-tab').hidden = !chrome.runtime.lastError && Boolean(answer?.ok);
+  });
+});
+$('reload-tab-button').addEventListener('click', () => {
+  chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+    if (tab) chrome.tabs.reload(tab.id);
+    window.close();
+  });
 });
