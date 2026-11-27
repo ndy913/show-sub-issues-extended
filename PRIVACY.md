@@ -1,6 +1,6 @@
 # Politique de confidentialité / Privacy policy
 
-**Show sub-issues extended for Linear** ne collecte, ne transmet et ne vend aucune donnée.
+**Linear · Show sub-issues extended** ne collecte, ne transmet et ne vend aucune donnée.
 
 - L'extension s'exécute uniquement sur `https://linear.app/*`.
 - Elle n'envoie aucune requête réseau et n'utilise aucun service tiers.
@@ -10,7 +10,7 @@
 
 ---
 
-**Show sub-issues extended for Linear** does not collect, transmit or sell any data.
+**Linear · Show sub-issues extended** does not collect, transmit or sell any data.
 
 - The extension only runs on `https://linear.app/*`.
 - It makes no network request and uses no third-party service.

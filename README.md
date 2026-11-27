@@ -1,4 +1,4 @@
-# Show sub-issues extended
+# Linear · Show sub-issues extended
 
 Extension Chrome pour [Linear](https://linear.app) qui complète l'option **Show sub-issues** des vues en liste : replier les sous-tickets sous leur parent, voir combien il y en a, et distinguer chaque niveau de l'arbre par une couleur.
 

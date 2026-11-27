@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
-  "name": "Show sub-issues extended for Linear",
-  "version": "0.8.1",
+  "name": "Linear · Show sub-issues extended",
+  "version": "0.8.2",
   "description": "Extends Linear's Show sub-issues option: collapse sub-issues under their parent, count them, tint them by depth.",
   "permissions": [
     "storage"
@@ -16,7 +16,7 @@
     "128": "icons/icon-128.png"
   },
   "action": {
-    "default_title": "Show sub-issues extended",
+    "default_title": "Linear · Show sub-issues extended",
     "default_popup": "popup.html",
     "default_icon": {
       "16": "icons/icon-16.png",
