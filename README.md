@@ -21,12 +21,12 @@ Avec **Show sub-issues** et **Nested sub-issues** activés, Linear affiche les s
 
 ## Réglages
 
-Dans la popup de l'extension (clic sur son icône) :
+Dans la popup de l'extension (clic sur son icône). Les réglages ne s'affichent que sur une liste de tickets qui montre les sous-tickets en arbre, donc avec **Show sub-issues** cochée et **Nested sub-issues** sur autre chose que Hide (Display options de Linear, Shift+V). Sinon, la popup le dit et propose un bouton **Afficher les sous-tickets en arbre**, qui règle ces deux options sur la vue ouverte.
 
 | Réglage | Effet |
 | --- | --- |
-| Extension active | Coupe tout d'un coup pour revoir Linear tel quel. L'allumer active aussi « Show sub-issues » et « Nested sub-issues » sur la vue ouverte. |
-| Repli des sous-tickets | Chevron, entrée du clic droit et pastille. Avec les boutons **Tout replier** et **Tout déplier**. |
+| Extension active | Coupe tout d'un coup pour revoir les listes sans chevrons, pastilles ni couleurs. |
+| Repli des sous-tickets | Chevron, entrée du clic droit et pastille. Avec les boutons **Tout replier** et **Tout déplier**, qui agissent sur la liste ouverte. |
 | Couleur par niveau | Fond pastel par niveau. Trois palettes neutres (Lavande, Ardoise, Sable) ou une palette personnalisée, avec un sélecteur de couleur par niveau. |
 | Intensité du fond | Opacité du fond du premier niveau. |
 | Écart entre niveaux | De combien le fond se renforce à chaque niveau. |
@@ -96,7 +96,7 @@ La liste de Linear est virtualisée : masquer des lignes dans le DOM laisserait 
 
 Ça repose sur le fonctionnement interne de Linear, qui peut changer sans prévenir. Si Linear modifie ce composant, l'extension peut cesser de fonctionner. Dans ce cas, les chevrons n'apparaissent plus mais Linear reste utilisable normalement.
 
-L'activation automatique de « Show sub-issues » repère les libellés anglais du panneau Display options : avec Linear dans une autre langue, elle ne fait rien.
+Le bouton **Afficher les sous-tickets en arbre** repère les libellés anglais du panneau Display options : avec Linear dans une autre langue, il ne fait rien, et il faut régler les deux options à la main.
 
 ## Fichiers
 

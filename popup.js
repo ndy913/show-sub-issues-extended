@@ -84,13 +84,13 @@ function renderPreview() {
   });
 }
 
-// Sends "collapse-all" or "expand-all" to the Linear tab in front, through bridge.js.
+// Sends an action to the Linear tab in front, through bridge.js. No answer means the page runs
+// without our scripts (opened before the extension was installed or reloaded): ask for a reload.
 function sendToActiveTab(action) {
   chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
     if (!tab) return;
     chrome.tabs.sendMessage(tab.id, { action }, () => {
-      // No bridge.js in that tab: it is not a Linear page.
-      $('collapse-message').hidden = !chrome.runtime.lastError;
+      if (chrome.runtime.lastError) $('reload-tab').hidden = false;
     });
   });
 }
@@ -100,11 +100,6 @@ $('expand-all').addEventListener('click', () => sendToActiveTab('expand-all'));
 for (const name of ['enabled', 'collapse', 'colors']) {
   $(name).addEventListener('change', () => save({ [name]: $(name).checked }));
 }
-// Turning the extension on also turns on Linear's "Show sub-issues" and "Nested sub-issues" on
-// the current view: the extension has nothing to work on without them.
-$('enabled').addEventListener('change', () => {
-  if ($('enabled').checked) sendToActiveTab('enable-sub-issues');
-});
 for (const name of ['tintStrength', 'levelStep']) {
   $(name).addEventListener('input', () => save({ [name]: Number($(name).value) }));
 }
@@ -115,18 +110,43 @@ chrome.storage.local.get(DEFAULTS, (stored) => {
   render();
 });
 
-// Outside linear.app the popup only says where the extension works. The tab's address decides
-// (Chrome shows it to the extension on linear.app, where its content scripts run). On a Linear tab
-// opened before the extension was installed or reloaded, the page still runs without our scripts:
-// they do not answer the ping, and the popup asks for a reload of the tab.
-chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
-  const onLinear = /^https:\/\/linear\.app\//.test(tab?.url || '');
-  $('main').hidden = !onLinear;
-  $('off-linear').hidden = onLinear;
-  if (!onLinear) return;
-  chrome.tabs.sendMessage(tab.id, { action: 'ping' }, (answer) => {
-    $('reload-tab').hidden = !chrome.runtime.lastError && Boolean(answer?.ok);
+// What the popup shows depends on the open tab:
+// - not linear.app (the tab's address decides): only where the extension works;
+// - a Linear tab opened before the extension was installed or reloaded: the page still runs without
+//   our scripts, they do not answer the ping, so the settings plus a button to reload the tab;
+// - a Linear view that does not show the sub-issue tree ("Show sub-issues" off, or "Nested
+//   sub-issues" on Hide): only that, with a button to turn both on;
+// - a Linear page without an issue list: only that;
+// - otherwise the settings.
+const PANELS = ['main', 'off-linear', 'no-option', 'no-list'];
+function showPanel(name) {
+  for (const panel of PANELS) $(panel).hidden = panel !== name;
+}
+
+function checkTab() {
+  chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {
+    if (!/^https:\/\/linear\.app\//.test(tab?.url || '')) return showPanel('off-linear');
+    chrome.tabs.sendMessage(tab.id, { action: 'ping' }, (answer) => {
+      // No answer, or an answer without `nested`: the page runs scripts older than this popup
+      // (an unpacked extension's popup is read from disk at each opening, the page scripts only
+      // when the extension is reloaded). Show the settings and ask for a reload of the tab.
+      const stale = Boolean(chrome.runtime.lastError) || !answer?.ok || !answer.nested;
+      $('reload-tab').hidden = !stale;
+      if (stale || answer.nested === 'on') return showPanel('main');
+      showPanel(answer.nested === 'off' ? 'no-option' : 'no-list');
+    });
   });
+}
+checkTab();
+
+// Turns the option on in the open view, then waits for the list to show the tree.
+$('enable-option').addEventListener('click', () => {
+  sendToActiveTab('enable-sub-issues');
+  let tries = 0;
+  const timer = setInterval(() => {
+    checkTab();
+    if (++tries >= 8 || !$('main').hidden) clearInterval(timer);
+  }, 500);
 });
 $('reload-tab-button').addEventListener('click', () => {
   chrome.tabs.query({ active: true, currentWindow: true }, ([tab]) => {

@@ -80,8 +80,33 @@
     return props.filter((p, i) => props.findIndex((q) => q.items === p.items) === i);
   }
 
+  // Linear rebuilds `items` when data or display options change. React keeps the list fiber's
+  // previous props on the other half of the pair until the list renders again, so right after a
+  // rebuild the two halves hold two different trees, and only the newest one is on screen. Each
+  // `items` array gets a number the first time it is seen: the current tree is the one with the
+  // highest number. Two arrays first seen together cannot be told apart (null): the list is then
+  // made to render, which leaves both halves with the same tree.
+  const itemsSeen = new WeakMap(); // items array -> when it was first seen
+  let seenCount = 0;
+  const gaveUp = new WeakSet(); // containers whose list never re-rendered: no way to tell halves apart
+
+  function currentPropsOf(propsList, container) {
+    const stamp = ++seenCount;
+    for (const props of propsList) if (!itemsSeen.has(props.items)) itemsSeen.set(props.items, stamp);
+    if (propsList.length < 2) return propsList[0] || null;
+    const [a, b] = propsList;
+    const seenA = itemsSeen.get(a.items);
+    const seenB = itemsSeen.get(b.items);
+    if (seenA === seenB) return gaveUp.has(container) ? a : null;
+    return seenA > seenB ? a : b;
+  }
+
+  // An issue's identifier, like "EXTERN-997". Other lists use the same item shape with other
+  // identifiers (cycles are numbered: 35, 34...), which must not pass for issues.
+  const ISSUE_ID = /^[A-Z][A-Z0-9]*-\d+$/;
   function identifierOf(item) {
-    return item?.data?.type === 'item' ? item.data.value?.identifier : undefined;
+    const id = item?.data?.type === 'item' ? item.data.value?.identifier : undefined;
+    return typeof id === 'string' && ISSUE_ID.test(id) ? id : undefined;
   }
 
   const childrenOf = (item) => originalSubItems.get(item) || item.subItems || [];
@@ -167,8 +192,13 @@
 
   function captureAnchor(row) {
     if (!row) {
-      // No clicked row (popup buttons): keep the first row on screen in place.
-      row = [...document.querySelectorAll(ROW_SELECTOR)].find((r) => r.getBoundingClientRect().bottom > 0);
+      // No clicked row (popup buttons): keep in place the first issue on screen that is not a
+      // sub-issue, since collapsing hides sub-issues.
+      const visible = [...document.querySelectorAll(ROW_SELECTOR)].filter((r) => {
+        const container = scrollContainerOf(r);
+        return container && r.getBoundingClientRect().top >= container.getBoundingClientRect().top;
+      });
+      row = visible.find((r) => lastRowInfo.get(r.getAttribute('data-list-key'))?.depth === 0) || visible[0];
     }
     pendingAnchor = row ? { key: row.getAttribute('data-list-key'), top: row.getBoundingClientRect().top } : null;
   }
@@ -225,8 +255,10 @@
   // back and the anchor row is put back in place, before the browser paints.
   // A container stays "dirty" from the patch until that re-render is seen; if it is not seen within
   // a few frames, the next apply tries again with another value (React skips a render when the
-  // value does not change, and Linear may round it). A real scroll by the user also re-renders
-  // the list, so it ends the wait too.
+  // value does not change, and Linear may round it). A scroll by the user also re-renders the list,
+  // so a wheel, touch or key gesture ends the wait too (without putting the row back, since the
+  // user moved). Scroll events alone do not: the browser fires one when the list gets shorter and
+  // pulls the scroll position back, which is exactly when the row must be put back in place.
 
   const SCROLL_TOP = Object.getOwnPropertyDescriptor(Element.prototype, 'scrollTop');
   const FAKE_OFFSETS = [0.5, 1, 1.5, 2];
@@ -242,6 +274,8 @@
       // Linear never re-rendered: give up rather than loop. The next click starts over.
       dirty.delete(container);
       attempts.delete(container);
+      anchors.delete(container);
+      gaveUp.add(container);
       return;
     }
     attempts.set(container, attempt + 1);
@@ -265,21 +299,24 @@
       if (done) return;
       done = true;
       watcher.disconnect();
-      container.removeEventListener('scroll', onUserScroll);
+      for (const type of USER_GESTURES) window.removeEventListener(type, onUserScroll, true);
       delete container.scrollTop; // back to the real one
       nudging.delete(container);
       if (seen) {
         dirty.delete(container);
         attempts.delete(container);
+        gaveUp.delete(container);
         if (restore) restoreAnchor(container, anchor);
+        // The render often adds no node, so no pass would follow: rows need one to show the
+        // tree now on screen.
+        schedule();
       } else {
         if (anchor) anchors.set(container, anchor);
         schedule(); // try again
       }
     };
-    const onUserScroll = (event) => {
-      if (event.isTrusted) finish(true, false);
-    };
+    const onUserScroll = () => finish(true, false);
+    const USER_GESTURES = ['wheel', 'touchmove', 'keydown'];
     const poll = () => {
       if (done) return;
       if (rendered()) finish(true, true);
@@ -298,7 +335,7 @@
       if (rendered()) finish(true, true);
     });
     watcher.observe(container, { childList: true, subtree: true });
-    container.addEventListener('scroll', onUserScroll, { passive: true });
+    for (const type of USER_GESTURES) window.addEventListener(type, onUserScroll, { capture: true, passive: true });
     requestAnimationFrame(poll);
 
     container.dispatchEvent(new Event('scroll'));
@@ -443,7 +480,7 @@
     event.stopPropagation();
   }
 
-  // Alt+click acts on every parent of the lists, rendered or not.
+  // Alt+click acts on every parent of the lists on screen, rendered or not.
   function onToggleClick(event) {
     swallow(event);
     const toggle = event.currentTarget;
@@ -451,7 +488,7 @@
     const value = toggle.dataset.collapsed !== 'true';
     if (event.altKey) {
       if (value) setCollapsed(allParentRows(), true, row);
-      else updateCollapsed((set) => set.clear(), row);
+      else setCollapsed(allParentRows(), false, row);
     } else {
       setCollapsed([{ key: toggle.dataset.rowKey, id: toggle.dataset.issueId }], value, row);
     }
@@ -497,25 +534,28 @@
         if (children.length) visit(children);
       }
     };
-    for (const { fiber } of findLists().values()) {
-      for (const props of listPropsOf(fiber)) visit(props.items);
+    for (const [container, { fiber }] of findLists()) {
+      const propsList = listPropsOf(fiber);
+      const current = currentPropsOf(propsList, container);
+      for (const props of current ? [current] : propsList) visit(props.items);
     }
     return [...rows.values()];
   }
 
-  // "Tout replier" / "Tout déplier" and turning the extension on, from the popup through bridge.js.
+  // "Tout replier" / "Tout déplier" (the lists on screen) and "Activer « Show sub-issues »", from
+  // the popup through bridge.js.
   window.addEventListener('message', (event) => {
     if (event.source !== window || event.data?.source !== 'lsc-bridge') return;
     if (event.data.action === 'collapse-all') setCollapsed(allParentRows(), true);
-    if (event.data.action === 'expand-all') updateCollapsed((set) => set.clear());
+    if (event.data.action === 'expand-all') setCollapsed(allParentRows(), false);
     if (event.data.action === 'enable-sub-issues') enableSubIssues().catch((error) => console.warn('[linear-subissue-collapse]', error));
   });
 
   // --- Linear's "Show sub-issues" display option ---------------------------------------------
   // The extension works on top of two options of Linear's Display options panel (Shift+V):
   // "Show sub-issues" on, and "Nested sub-issues" not set to "Hide" (that is what draws the tree).
-  // Turning the extension on from the popup sets both on the current view, by driving the panel
-  // the way a user would. Labels are Linear's English ones.
+  // The popup button « Afficher les sous-tickets en arbre » sets both on the current view, by
+  // driving the panel the way a user would. Labels are Linear's English ones.
 
   const sleep = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
 
@@ -542,6 +582,7 @@
   }
 
   async function enableSubIssues() {
+    if (ROOT.dataset.lscNested === 'on') return;
     const button = document.querySelector('button[aria-label="Display options"]');
     if (!button) return; // not a list view
     const wasOpen = Boolean(labelElement('Show sub-issues'));
@@ -569,17 +610,25 @@
       await sleep(150);
     }
 
-    if (!wasOpen) {
-      (document.activeElement || document.body).dispatchEvent(
-        new KeyboardEvent('keydown', { key: 'Escape', code: 'Escape', keyCode: 27, bubbles: true }),
-      );
+    // Close the panel the way it was opened: a click on its button. Escape is not safe here: once
+    // the focus has left the panel, Linear reads it as "go back" and leaves the view.
+    if (!wasOpen && labelElement('Show sub-issues')) {
+      button.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true }));
+      button.click();
     }
   }
 
-  // A list whose tree has at least one parent: "Show sub-issues" and "Nested sub-issues" are on.
+  // Whether a list draws the sub-issue tree, that is "Show sub-issues" on and "Nested sub-issues"
+  // not on "Hide". Then Linear gives every issue a `subItems` array, empty when it has no
+  // sub-issues; with either option off, issues have no `subItems` at all.
   // Elsewhere the extension leaves the rows untouched.
   function hasNestedSubIssues(propsList) {
-    const visit = (items) => items.some((item) => (identifierOf(item) && childrenOf(item).length) || (item.subItems?.length && visit(item.subItems)));
+    const visit = (items) =>
+      items.some((item) =>
+        identifierOf(item)
+          ? Array.isArray(item.subItems) || originalSubItems.has(item)
+          : Boolean(item.subItems?.length && visit(item.subItems)),
+      );
     return propsList.some((props) => visit(props.items));
   }
 
@@ -609,18 +658,18 @@
     if (!lastContextMenu || Date.now() - lastContextMenu.at > 3000 || !isEnabled('lscCollapse')) return;
     const rowKey = lastContextMenu.key;
     const info = lastRowInfo.get(rowKey);
-    if (!info?.isParent) return;
 
     // The newest menu: dialogs open later come later in the document.
     const dialogs = [...document.querySelectorAll('[role="dialog"]')].filter((d) =>
       d.querySelector('[role="listbox"] li[role="option"]'),
     );
     const dialog = dialogs[dialogs.length - 1];
+    if (!info?.isParent) return clearMenu(dialog);
     if (!dialog) return;
     // A dialog Linear reuses keeps the block of the previous right-click: replace it.
     const previous = dialog.querySelector('.lsc-menu');
-    if (previous?.dataset.rowKey === rowKey) return;
-    previous?.remove();
+    if (previous?.dataset.rowKey === rowKey && previous.dataset.collapsed === String(info.isCollapsed)) return;
+    clearMenu(dialog);
 
     const listbox = dialog.querySelector('[role="listbox"]');
     const options = [...listbox.querySelectorAll('li[role="option"]')];
@@ -664,6 +713,7 @@
     const block = document.createElement('div');
     block.className = 'lsc-menu';
     block.dataset.rowKey = rowKey;
+    block.dataset.collapsed = String(info.isCollapsed);
     block.append(item);
     if (separator) {
       const line = separator.cloneNode(true);
@@ -672,7 +722,57 @@
       block.append(line);
     }
     listbox.before(block);
+    fitMenu(dialog);
   }
+
+  // The menu is taller with our block: move it up just enough to keep its last items on screen.
+  // Measured from Linear's own position, without a shift left by an earlier right-click.
+  function fitMenu(dialog) {
+    dialog.style.translate = '';
+    const box = dialog.getBoundingClientRect();
+    const overflow = box.bottom - (window.innerHeight - 8);
+    if (overflow > 0) dialog.style.translate = `0 ${-Math.min(overflow, Math.max(0, box.top - 8))}px`;
+  }
+
+  // Removes our block (and its shift) from a menu: right-click on a row that is not a parent.
+  function clearMenu(dialog) {
+    if (!dialog?.querySelector('.lsc-menu')) return;
+    dialog.querySelector('.lsc-menu').remove();
+    dialog.style.translate = '';
+  }
+
+  // --- What the popup shows ---------------------------------------------------------------------
+  // data-lsc-nested on <html>, read by bridge.js for the popup: "on" when a list shows the
+  // sub-issue tree, "off" when the issue lists on screen do not (options off), "none" when the page
+  // has no issue list. A list whose tree is not known yet (null) keeps the previous value.
+
+  // State of one list: 'on' / 'off' for an issue list with / without the tree, null when its tree
+  // is not known yet, undefined when it is not an issue list (the cycles page lists cycles).
+  function listState(propsList, current) {
+    if (!propsList.length) return undefined;
+    if (!current) return null;
+    const hasIssues = (items) => items.some((item) => identifierOf(item) || (item.subItems?.length && hasIssues(item.subItems)));
+    if (!hasIssues(current.items)) return undefined;
+    return hasNestedSubIssues([current]) ? 'on' : 'off';
+  }
+
+  function writeNestedState(states) {
+    const values = [...states.values()];
+    if (values.includes('on')) return setData(ROOT, 'lscNested', 'on');
+    if (values.includes(null)) return;
+    setData(ROOT, 'lscNested', values.includes('off') ? 'off' : 'none');
+  }
+
+  // bridge.js fires this right before answering the popup: the page may have changed without any
+  // pass (a view left for an issue page, an option turned off with no row added).
+  document.addEventListener('lsc-ping', () => {
+    const states = new Map();
+    for (const [container, { fiber }] of findLists()) {
+      const propsList = listPropsOf(fiber);
+      states.set(container, listState(propsList, currentPropsOf(propsList, container)));
+    }
+    writeNestedState(states);
+  });
 
   // --- Main pass -------------------------------------------------------------------------------
 
@@ -680,24 +780,32 @@
     const lists = findLists();
 
     const rowInfo = new Map(); // item key -> { id, key, depth, childCount, isParent, isCollapsed }
-    const nestedLists = new Set();
+    const states = new Map(); // container -> 'on' | 'off' | null (tree unknown yet)
     for (const [container, { fiber }] of lists) {
       setData(container, 'lscList', ''); // lets the observer tell list changes from the rest
       const propsList = listPropsOf(fiber);
+      const current = currentPropsOf(propsList, container);
+      // Both trees are patched, so the next render is patched whichever half React uses; the row
+      // information only comes from the tree on screen.
       let changed = false;
-      for (const props of propsList) changed = patchTree(props, rowInfo) || changed;
+      for (const props of propsList) changed = patchTree(props, props === current ? rowInfo : new Map()) || changed;
       if (changed) {
         dirty.add(container);
         attempts.delete(container);
+      } else if (propsList.length && !current) {
+        dirty.add(container); // two trees, none known as current: a render settles it
       }
-      if (hasNestedSubIssues(propsList)) nestedLists.add(container);
+      states.set(container, listState(propsList, current));
     }
+    writeNestedState(states);
 
-    // All the reads first, then all the writes, so the layout is computed once.
+    // All the reads first, then all the writes, so the layout is computed once. A list whose tree
+    // is not known yet keeps its rows as they are until its next render.
     const plans = [];
     for (const [container, { rows }] of lists) {
-      const nested = nestedLists.has(container);
-      for (const row of rows) plans.push(readRow(row, nested ? rowInfo.get(row.getAttribute('data-list-key')) : undefined));
+      const state = states.get(container);
+      if (state === null) continue;
+      for (const row of rows) plans.push(readRow(row, state === 'on' ? rowInfo.get(row.getAttribute('data-list-key')) : undefined));
     }
     for (const plan of plans) writeRow(plan);
     lastRowInfo = rowInfo;
@@ -706,7 +814,7 @@
     // Hand the anchor to the list that holds the anchor row.
     if (pendingAnchor) {
       for (const container of lists.keys()) {
-        if (rowByKey(container, pendingAnchor.key)) anchors.set(container, pendingAnchor);
+        if (dirty.has(container) && rowByKey(container, pendingAnchor.key)) anchors.set(container, pendingAnchor);
       }
       pendingAnchor = null;
     }

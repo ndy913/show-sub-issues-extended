@@ -172,14 +172,23 @@
 
     <p id="off-linear" hidden>Actif uniquement sur <strong>linear.app</strong>. Ouvre Linear dans cet onglet pour régler l'extension.</p>
 
+    <div id="no-option" class="notice" hidden>
+      Cette vue n'affiche pas les sous-tickets en arbre : il n'y a rien à replier. Il faut
+      <strong>« Show sub-issues »</strong> cochée et <strong>« Nested sub-issues »</strong> sur autre chose que Hide,
+      dans les Display options de Linear (Shift+V).
+      <button type="button" id="enable-option">Afficher les sous-tickets en arbre</button>
+    </div>
+
+    <p id="no-list" hidden>Ouvre une vue en liste de tickets (un cycle, un projet, une vue) pour régler l'extension.</p>
+
     <div id="main" hidden>
     <p id="reload-tab" class="notice" hidden>
-      L'extension vient d'être installée ou rechargée : recharge cet onglet pour l'appliquer.
+      L'extension vient d'être installée, rechargée ou mise à jour : recharge cet onglet pour l'appliquer.
       <button type="button" id="reload-tab-button">Recharger l'onglet</button>
     </p>
     <label class="switch">
       <input type="checkbox" id="enabled" />
-      <span>Extension active<small>Active aussi « Show sub-issues » sur la vue ouverte. Décocher pour revoir Linear tel quel</small></span>
+      <span>Extension active<small>Décocher pour revoir les listes sans chevrons, pastilles ni couleurs</small></span>
     </label>
 
     <div id="options">
@@ -192,7 +201,6 @@
           <button type="button" id="collapse-all">Tout replier</button>
           <button type="button" id="expand-all">Tout déplier</button>
         </div>
-        <small class="sub" id="collapse-message" hidden>Ouvre une liste Linear dans cet onglet.</small>
       </section>
 
       <section>
